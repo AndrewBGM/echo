@@ -4,6 +4,16 @@ typealias HookBuilder<H> = (H?) -> H
 
 interface Hook
 
+internal class ContextHook<T>(
+  var value: T,
+) : Hook {
+  operator fun invoke(
+    newValue: T,
+  ): ContextHook<T> = apply {
+    value = newValue
+  }
+}
+
 internal class EffectHook(
   var dependencies: Array<*>,
   body: EffectBody,

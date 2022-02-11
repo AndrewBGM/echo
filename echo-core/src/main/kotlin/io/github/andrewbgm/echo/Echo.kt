@@ -11,6 +11,16 @@ object Echo {
   private var oldHooks = emptyList<Hook>()
   private val newHooks = mutableListOf<Hook>()
 
+  private val valueByContext = mutableMapOf<Context<out Any?>, Any?>()
+
+  fun <T> createContext(
+    defaultValue: T,
+  ): Context<T> {
+    val context = Context<T>()
+    valueByContext[context] = defaultValue
+    return context
+  }
+
   fun createTag(
     key: String?,
     type: Tag.Type<Props>,
@@ -36,6 +46,17 @@ object Echo {
     newHooks += newHook
 
     return newHook
+  }
+
+  fun <T> useContext(
+    context: Context<T>,
+  ): T {
+    val hook = useHook<ContextHook<T>> {
+      val value = valueByContext[context] as T
+      it?.invoke(value) ?: ContextHook(value)
+    }
+
+    return hook.value
   }
 
   fun useEffect(
@@ -111,6 +132,19 @@ object Echo {
     callback: () -> Unit,
   ) = scheduleUpdate {
     updater = callback
+  }
+
+  internal fun <T, R> withContext(
+    context: Context<T>,
+    value: T,
+    callback: () -> R,
+  ): R {
+    return valueByContext[context].let {
+      valueByContext[context] = value
+      val result = callback()
+      valueByContext[context] = it
+      result
+    }
   }
 
   internal fun withHooks(

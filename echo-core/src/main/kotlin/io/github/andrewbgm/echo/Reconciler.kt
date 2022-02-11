@@ -124,9 +124,26 @@ class Reconciler<in T : Tag.Type<P>, in P : Props, N : Any>(
     parent: Projection<N>,
     tag: Tag,
   ): Projection<N> = when (tag.type) {
+    is ContextTagType<*> -> createContextProjection(parent, tag)
     is FragmentTagType -> createFragmentProjection(parent, tag)
     is ViewTagType<*> -> createViewProjection(parent, tag)
     else -> createHostProjection(parent, tag)
+  }
+
+  private fun createContextProjection(
+    parent: Projection<N>,
+    tag: Tag,
+  ): Projection<N> {
+    val type = tag.type as ContextTagType<Any?>
+    val props = tag.props as ContextProps<Any?>
+
+    return Echo.withContext(type.context, props.value) {
+      buildProjection(
+        parent = parent,
+        tag = tag,
+        children = tag.props.children,
+      )
+    }
   }
 
   private fun createFragmentProjection(
@@ -174,9 +191,23 @@ class Reconciler<in T : Tag.Type<P>, in P : Props, N : Any>(
     projection: Projection<N>,
     tag: Tag,
   ) = when (tag.type) {
+    is ContextTagType<*> -> updateContextProjection(projection, tag)
     is FragmentTagType -> updateFragmentProjection(projection, tag)
     is ViewTagType<*> -> updateViewProjection(projection, tag)
     else -> updateHostProjection(projection, tag)
+  }
+
+  private fun updateContextProjection(
+    projection: Projection<N>,
+    tag: Tag,
+  ) {
+    val type = tag.type as ContextTagType<Any?>
+    val props = tag.props as ContextProps<Any?>
+
+    Echo.withContext(type.context, props.value) {
+      projection.props = tag.props
+      projection.children = reconcileChildren(projection, tag.props.children)
+    }
   }
 
   private fun updateFragmentProjection(
@@ -218,9 +249,16 @@ class Reconciler<in T : Tag.Type<P>, in P : Props, N : Any>(
   private fun removeProjection(
     projection: Projection<N>,
   ) = when (projection.type) {
+    is ContextTagType<*> -> removeContextProjection(projection)
     is FragmentTagType -> removeFragmentProjection(projection)
     is ViewTagType<*> -> removeViewProjection(projection)
     else -> removeHostProjection(projection)
+  }
+
+  private fun removeContextProjection(
+    projection: Projection<N>,
+  ) {
+    projection.children.forEach(::removeProjection)
   }
 
   private fun removeFragmentProjection(
