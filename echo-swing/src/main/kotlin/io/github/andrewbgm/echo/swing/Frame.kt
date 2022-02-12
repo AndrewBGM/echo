@@ -31,16 +31,22 @@ private class FrameNode(
     child: Any,
   ) {
     require(child is Component)
-    ref.add(child)
+    if (child is JMenuBar) {
+      ref.jMenuBar = child
+    } else ref.add(child)
   }
 
   override fun removeChild(
     child: Any,
   ) {
     require(child is Component)
-    ref.remove(child)
-    ref.revalidate()
-    ref.repaint()
+    if (child is JMenuBar) {
+      ref.jMenuBar = null
+    } else {
+      ref.remove(child)
+      ref.revalidate()
+      ref.repaint()
+    }
   }
 
   override fun insertChild(
@@ -50,14 +56,18 @@ private class FrameNode(
     require(child is Component)
     require(beforeChild is Component)
 
-    if (ref.components.contains(child)) {
-      ref.remove(child)
-      ref.revalidate()
-      ref.repaint()
-    }
+    if (child is JMenuBar) {
+      ref.jMenuBar = child
+    } else {
+      if (ref.components.contains(child)) {
+        ref.remove(child)
+        ref.revalidate()
+        ref.repaint()
+      }
 
-    val idx = ref.components.indexOf(beforeChild)
-    ref.add(child, idx)
+      val idx = ref.components.indexOf(beforeChild)
+      ref.add(child, idx)
+    }
   }
 }
 
