@@ -60,7 +60,7 @@ object Echo {
   }
 
   fun useEffect(
-    vararg dependencies: Array<*>,
+    vararg dependencies: Any?,
     body: EffectBody,
   ) {
     useHook<EffectHook> {
