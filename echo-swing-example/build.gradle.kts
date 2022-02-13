@@ -3,8 +3,8 @@ plugins {
 }
 
 dependencies {
-  api(project(":echo-core"))
-  api(project(":echo-swing"))
+  implementation(project(":echo-core"))
+  implementation(project(":echo-swing"))
 }
 
 application {
