@@ -11,6 +11,7 @@ private val onChangeCallbacks = WeakHashMap<JTextField, TextFieldOnChange?>()
 
 private data class TextFieldProps(
   val initialValue: String?,
+  val columns: Int,
   val onChange: TextFieldOnChange?,
 ) : SwingProps()
 
@@ -21,6 +22,8 @@ private class TextFieldNode(
     previousProps: TextFieldProps?,
     nextProps: TextFieldProps,
   ) = with(ref) {
+    columns = nextProps.columns
+
     onChangeCallbacks[this] = nextProps.onChange
   }
 }
@@ -59,5 +62,6 @@ private object TextFieldTagType : SwingTagType<TextFieldProps, TextFieldNode> {
 fun textField(
   key: String? = null,
   initialValue: String? = null,
+  columns: Int = 0,
   onChange: TextFieldOnChange? = null,
-): Tag = Echo.createTag(key, TextFieldTagType, TextFieldProps(initialValue, onChange))
+): Tag = Echo.createTag(key, TextFieldTagType, TextFieldProps(initialValue, columns, onChange))
